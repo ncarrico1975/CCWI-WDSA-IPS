@@ -13,7 +13,7 @@ The water utility managing the DMAs concerned provided the hourly net-inflow tim
 
 Net-inflow time series include water consumptions and leakages and are obtained through water balance:
 
-$Q_{net}=\sum_{i=1}^{n_{in}} Q_{in,i} -\sum_{j=1}^{n_{out}} Q_{out,j}$
+$Q_{net}=\sum_{i=1}^{n_{in}}Q_{in,i}-\sum_{j=1}^{n_{out}}Q_{out,j}$
 
 
 in which $Q_{in}$ is the flow rate entering the DMA concerned through the 𝑖-th inlet point (𝑖 = 1,2, ... $n_{𝑖𝑛}$) and acquired by the water utility SCADA system, whereas $Q_{out}$ is the flow rate outgoing from the DMA concerned through the 𝑗-th outlet point (𝑗 = 1,2, ... $n_{out}$). It is worth noting that no DMAs with storage facilities are included. Moreover, net-inflow data are not post-processed, so they can show some gaps related to SCADA system malfunctioning and other data collection/transmission issues.
