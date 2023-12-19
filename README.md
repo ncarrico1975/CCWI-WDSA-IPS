@@ -8,14 +8,12 @@ The Battle of Water Demand Forecasting (BWDF), organized in the context of the 3
 The challenge proposed in the context of the BWDF is focused on the forecast of the water demands with reference to a case-study WDN located in the North-East of Italy, supplying a variety of areas that are considerably different as far as characteristics, size, and average water demand are concerned. Specifically, **forecasting is required for ten DMAs** of the WDN concerned with the **aim of defining optimal system operation for the near future (i.e., upcoming day and week), and optimizing the energy purchase**. The water demand of each DMA is assumed to be represented by the net inflow and thus it **includes all the types of water consumption and leakages of the DMA**.
 
 ### DMA characteristics
-![image.png](attachment:image.png)
 
-
-The water utility managing the DMAs concerned provided the hourly net-inflow time series 𝑄𝑛𝑒𝑡 (L/s) for each DMA in relation to the period from 1 January 2021 to 31 March 2023. 
+The water utility managing the DMAs concerned provided the hourly net-inflow time series $Q_{net}$ (L/s) for each DMA in relation to the period from 1 January 2021 to 31 March 2023. 
 
 Net-inflow time series include water consumptions and leakages and are obtained through water balance:
 
-$ Q_{net}=\sum_{i=1}^{n_{in}} Q_{in,i} -\sum_{j=1}^{n_{out}} Q_{out,j}$
+$Q_{net}=\sum_{i=1}^{n_{in}} Q_{in,i} -\sum_{j=1}^{n_{out}} Q_{out,j}$
 
 
 in which $Q_{in}$ is the flow rate entering the DMA concerned through the 𝑖-th inlet point (𝑖 = 1,2, ... $n_{𝑖𝑛}$) and acquired by the water utility SCADA system, whereas $Q_{out}$ is the flow rate outgoing from the DMA concerned through the 𝑗-th outlet point (𝑗 = 1,2, ... $n_{out}$). It is worth noting that no DMAs with storage facilities are included. Moreover, net-inflow data are not post-processed, so they can show some gaps related to SCADA system malfunctioning and other data collection/transmission issues.
