@@ -8,6 +8,7 @@ The Battle of Water Demand Forecasting (BWDF), organized in the context of the 3
 The challenge proposed in the context of the BWDF is focused on the forecast of the water demands with reference to a case-study WDN located in the North-East of Italy, supplying a variety of areas that are considerably different as far as characteristics, size, and average water demand are concerned. Specifically, **forecasting is required for ten DMAs** of the WDN concerned with the **aim of defining optimal system operation for the near future (i.e., upcoming day and week), and optimizing the energy purchase**. The water demand of each DMA is assumed to be represented by the net inflow and thus it **includes all the types of water consumption and leakages of the DMA**.
 
 ### DMA characteristics
+![DMA_characteristics](./documents/DMA_characteristics.png)
 
 The water utility managing the DMAs concerned provided the hourly net-inflow time series $Q_{net}$ (L/s) for each DMA in relation to the period from 1 January 2021 to 31 March 2023. 
 
