@@ -1,6 +1,9 @@
 import math
 
 def durations_gaps(df,variable,durations_of_short_failure):
+
+    week_days = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday']
+
     long_duration_failure = {}
     short_duration_failure = {}
 
@@ -13,17 +16,17 @@ def durations_gaps(df,variable,durations_of_short_failure):
         elif math.isnan(value)==False:
             if counter > durations_of_short_failure:
                 if counter!=0 and dates_array!=[]:
-                    long_duration_failure[f'{dates_array[0]} >>> {dates_array[-1]}'] = (counter, (df[variable].index[-1]-index).days)
+                    long_duration_failure[f'{dates_array[0]} [weekday: {week_days[dates_array[0].weekday()]}]  >>> {dates_array[-1]} [weekday: {week_days[dates_array[-1].weekday()]}]'] = (counter, (df[variable].index[-1]-index).days)
                     counter = 0
                     dates_array=[]
             if counter <= durations_of_short_failure:
                 if counter!=0 and dates_array!=[]:
                     if counter == 1:
-                        short_duration_failure[f'{dates_array[0]}'] = (counter, (df[variable].index[-1]-index).days)
+                        short_duration_failure[f'{dates_array[0]} [weekday: {week_days[dates_array[0].weekday()]}]'] = (counter, (df[variable].index[-1]-index).days)
                         counter = 0
                         dates_array=[]
                     else:
-                        short_duration_failure[f'{dates_array[0]} >>> {dates_array[-1]}'] = (counter, (df[variable].index[-1]-index).days)
+                        short_duration_failure[f'{dates_array[0]} [weekday: {week_days[dates_array[0].weekday()]}] >>> {dates_array[-1]} [weekday: {week_days[dates_array[-1].weekday()]}]'] = (counter, (df[variable].index[-1]-index).days)
                         counter = 0
                         dates_array=[]
 
