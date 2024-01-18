@@ -22,6 +22,7 @@ def svr(history_inflow_df=None, test_length=24*7, df_holidays=None,D=5):
     df['Time'] = pd.to_datetime(df['date']).dt.time
     # print('New Dataset (split date and time):')
     # print(df)
+    df=df.reset_index()
 
     del df['date']
     df = df.rename({'Date': 'date', 'Time': 'time', 'value':'flow'}, axis='columns')

@@ -170,7 +170,8 @@ def lstm(df_train = None, window = WINDOW, n_days_test = 7):
 
 
 df_holidays = pd.read_csv('documents/Holidays.txt',parse_dates=True)    #import holidays
-df_inflow = pd.read_excel('documents/InflowData_1.xlsx')    #import inflow data
+df_inflow = pd.read_csv('treated_series/inflow_completed_in_R.csv')
+# df_inflow = pd.read_excel('documents/InflowData_1.xlsx')    #import inflow data
 df_weather = pd.read_excel('documents/WeatherData_1.xlsx')  #import weather data
 
 transf_dict_inflow = {
@@ -213,12 +214,12 @@ n_days_test    = 7            # lenght of our test data (counting from the next 
 
 # comment out the models you don't want to run
 forecasting_methods = [
-                    'naive_avg',
-                    'naive_median',
-                    'naive_ewma',
-                    'xgboost_naive',
-                    'lstm',
-                    # 'svr',
+                    # 'naive_avg',
+                    # 'naive_median',
+                    # 'naive_ewma',
+                    # 'xgboost_naive',
+                    # 'lstm',
+                    'svr',
                     ]
 
 # comment out the variables dmas you don't want to run
@@ -289,6 +290,7 @@ if 'naive_avg' in forecasting_methods: naive_avg_rmse = pd.DataFrame(index = ran
 if 'naive_median' in forecasting_methods: naive_median_rmse = pd.DataFrame(index = range_to_forecast, columns = forecasting_dmas)
 if 'naive_ewma' in forecasting_methods: naive_ewma_rmse = pd.DataFrame(index = range_to_forecast, columns = forecasting_dmas)
 if 'xgboost_naive' in forecasting_methods: xgboost_naive_rmse = pd.DataFrame(index = range_to_forecast, columns = forecasting_dmas)
+if 'svr' in forecasting_methods: svr_rmse = pd.DataFrame(index = range_to_forecast, columns = forecasting_dmas)
 
 #Empty df's to receive battle metric results
 if 'lstm' in forecasting_methods: lstm_battle_metrics= pd.DataFrame(columns=forecasting_dmas)
@@ -296,6 +298,7 @@ if 'naive_avg' in forecasting_methods: naive_avg_battle_metrics = pd.DataFrame(i
 if 'naive_median' in forecasting_methods: naive_median_battle_metrics = pd.DataFrame(index = range_to_forecast, columns = forecasting_dmas)
 if 'naive_ewma' in forecasting_methods: naive_ewma_battle_metrics = pd.DataFrame(index = range_to_forecast, columns = forecasting_dmas)
 if 'xgboost_naive' in forecasting_methods: xgboost_naive_battle_metrics = pd.DataFrame(index = range_to_forecast, columns = forecasting_dmas)
+if 'svr' in forecasting_methods: svr_battle_metrics = pd.DataFrame(index = range_to_forecast, columns = forecasting_dmas)
 
 
 
@@ -392,13 +395,13 @@ for dma in forecasting_dmas:    # for each dma
                      D=5)
         
         x = true_df.index # it will store the indices of the range to forecast
-        df_forecasts_xgboost_naive.loc[x,dma] = y_pred
+        df_forecasts_svr.loc[x,dma] = y_pred
         y_true =true_df.loc[x,dma].values # true values of the range to forecast
 
-        xgboost_naive_rmse.loc[0,dma] = mean_squared_error(y_true, y_pred,squared=False)
+        svr_rmse.loc[0,dma] = mean_squared_error(y_true, y_pred,squared=False)
   
         if n_days_test == 7: #because only in this case it makes sense to compute battle's metrics
-            xgboost_naive_battle_metrics.loc[0,dma]= BattleMetrics_per_dma(y_pred, y_true)
+            svr_battle_metrics.loc[0,dma]= BattleMetrics_per_dma(y_pred, y_true)
 
 
 
@@ -408,7 +411,7 @@ for dma in df_inflow[forecasting_dmas].columns:    #real measurements
     trace = go.Scatter(x=df_inflow.index, y=df_inflow[dma], mode='lines', name=f'Real - {dma}',opacity=0.5, line=dict(color=dict_colors[dma], width=1.5, dash='solid'))
     traces.append(trace)
 
-
+#Plots
 if 'lstm' in forecasting_methods:
     for dma in df_forecasts_lstm.columns:    #forecasts_lstm
         trace = go.Scatter(x=df_forecasts_lstm.index, y=df_forecasts_lstm[dma], mode='markers', name=f'LSTM - {dma}', line=dict(color=dict_colors[dma], width=1.5, dash='solid'))
@@ -434,11 +437,16 @@ if 'xgboost_naive' in forecasting_methods:
         trace = go.Scatter(x=df_forecasts_xgboost_naive.index, y=df_forecasts_xgboost_naive[dma], mode='markers', name=f'Xgboost Naive - {dma}', line=dict(color=dict_colors[dma], width=1.5, dash='solid'))
         traces.append(trace)     
 
+if 'svr' in forecasting_methods:
+    for dma in df_forecasts_svr.columns:    #forecasts_xgboost_naive
+        trace = go.Scatter(x=df_forecasts_svr.index, y=df_forecasts_svr[dma], mode='markers', name=f'SVR - {dma}', line=dict(color=dict_colors[dma], width=1.5, dash='solid'))
+        traces.append(trace) 
+
 fig = go.Figure(data=traces)
 
 fig.show()
 
-
+#
 if 'lstm' in forecasting_methods:
     print('RMSE for the LSTM model (for all selected DMAs) \n\n',lstm_rmse)
     print('\n\n')
@@ -473,3 +481,10 @@ if 'xgboost_naive' in forecasting_methods:
     if n_days_test==7:
         print('Battle metrics for the Xgboost Naive model (for all selected DMAs)\n\n', xgboost_naive_battle_metrics)
         print('Overall battle metrics = ', xgboost_naive_battle_metrics.sum(axis =1).loc[0])
+
+if 'svr' in forecasting_methods:
+    print('RMSE for the SVR model (for all selected DMAs) \n\n',svr_rmse)
+    print('\n\n')
+    if n_days_test==7:
+        print('Battle metrics for the SVR model (for all selected DMAs)\n\n', svr_battle_metrics)
+        print('Overall battle metrics = ', svr_battle_metrics.sum(axis =1).loc[0])
