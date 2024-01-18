@@ -68,20 +68,20 @@ unique_days_weather = df_weather.index.map(lambda t: t.date()).unique()   #get l
 
 #######################    parameters
 number_of_days_in_history = 30
-days_to_forecast = 6
+days_to_forecast = 7
 last_day_in_history = '2022-07-18'
 
 forecasting_methods = [
-                    'naive_avg',
+                    # 'naive_avg',
                     'naive_median',
-                    'naive_ewma',
-                    'XGBOOST_naive',
+                    # 'naive_ewma',
+                    # 'XGBOOST_naive',
 ]
 
 forecasting_dmas = [
                     'dma_A',
-                    'dma_B',
-                    'dma_C',
+                    # 'dma_B',
+                    # 'dma_C',
                     # 'dma_D',
                     # 'dma_E',
                     # 'dma_F',

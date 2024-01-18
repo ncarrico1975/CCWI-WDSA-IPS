@@ -85,19 +85,7 @@ BATCH_SIZE = 32  #number of training samples to work through before the model’
 #############################
 
 
-#just for plotting
-dict_colors ={
-    "dma_A": "blue",
-    "dma_B": "red",
-    "dma_C": "green",
-    "dma_D": "orange",
-    "dma_E": "yellow",
-    "dma_F": "purple",
-    "dma_G": "black",
-    "dma_H": "cyan",
-    "dma_I": "darkred",
-    "dma_J": "teal",
-}
+
 
 ###########################
 
