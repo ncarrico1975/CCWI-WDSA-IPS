@@ -10,6 +10,9 @@ defined_gapsize_limit=1200
 df<-read_excel("InflowData_1.xlsx")
 summary(df)
 
+df_w<-read_excel("WeatherData_1.xlsx")
+summary(df_w)
+
 
 ts.plot(df$`DMA A (L/s)`)
 
@@ -24,6 +27,8 @@ df$`DMA G (L/s)`<-as.numeric(df$`DMA G (L/s)`)
 df$`DMA H (L/s)`<-as.numeric(df$`DMA H (L/s)`)
 df$`DMA I (L/s)`<-as.numeric(df$`DMA I (L/s)`)
 df$`DMA J (L/s)`<-as.numeric(df$`DMA J (L/s)`)
+
+
 
 # some stats on the NA for each variable
 statsNA(df$`DMA A (L/s)`, print_only=T)
@@ -50,6 +55,8 @@ ggplot_na_distribution(df$`DMA I (L/s)`)
 ggplot_na_distribution(df$`DMA J (L/s)`)
 
 
+
+
 df_dma_a_complete<- na_seadec(df$`DMA A (L/s)`, algorithm="ma", find_frequency = TRUE, maxgap=defined_gapsize_limit)
 ggplot_na_imputations(df$`DMA A (L/s)`, df_dma_a_complete, subtitle="DMA A")
 
@@ -72,7 +79,7 @@ df_dma_f_complete<- na_seadec(df$`DMA F (L/s)`, algorithm="ma", find_frequency =
 ggplot_na_imputations(df$`DMA F (L/s)`, df_dma_f_complete, subtitle="DMA F")
 
 
-#this one doesn't look good
+
 df_dma_g_complete<- na_seadec(df$`DMA G (L/s)`, algorithm="ma", find_frequency = TRUE, maxgap=defined_gapsize_limit)
 ggplot_na_imputations(df$`DMA G (L/s)`, df_dma_g_complete, subtitle="DMA G")
 
@@ -88,7 +95,27 @@ df_dma_j_complete<- na_seadec(df$`DMA J (L/s)`, algorithm="ma", find_frequency =
 ggplot_na_imputations(df$`DMA J (L/s)`, df_dma_j_complete, subtitle="DMA J")
 ?na_seadec
 
+
+
 df_complete<-data.frame(df$`Date-time CET-CEST (DD/MM/YYYY HH:mm)`,df_dma_a_complete,df_dma_b_complete,df_dma_c_complete,df_dma_d_complete,df_dma_e_complete,df_dma_f_complete, df_dma_g_complete, df_dma_h_complete, df_dma_i_complete, df_dma_j_complete)
 colnames(df_complete)<-c("datetime", "dma_A","dma_B", "dma_C", "dma_D","dma_E", "dma_F","dma_G","dma_H","dma_I", "dma_J")
 
 write.csv(df_complete,"inflow_completed_in_R.csv")
+
+
+
+#### WEATHER
+####
+df_w$`Rainfall depth (mm)`<-as.numeric(df_w$`Rainfall depth (mm)`)
+df_w$`Air temperature (°C)`<-as.numeric(df_w$`Air temperature (°C)`)
+df_w$`Air humidity (%)`<-as.numeric(df_w$`Air humidity (%)`)
+
+ggplot_na_distribution(df_w$`Rainfall depth (mm)`)
+ggplot_na_distribution(df_w$`Air temperature (°C)`)
+ggplot_na_distribution(df_w$`Air humidity (%)`)
+df_w_humidity_complete<- na_seadec(df_w$`Air humidity (%)`, algorithm="ma", find_frequency = TRUE, maxgap=defined_gapsize_limit)
+ggplot_na_imputations(df_w$`Air humidity (%)`, df_w_humidity_complete, subtitle="Air humidity")
+df_w_complete<-data.frame(df_w$`Date-time CET-CEST (DD/MM/YYYY HH:mm)`,df_w$`Rainfall depth (mm)`,df_w$`Air temperature (°C)`,df_w_humidity_complete)
+colnames(df_w_complete)<-c("datetime","rainfall", "temperature","humidity")
+
+write.csv(df_w_complete,"weather_completed_in_R.csv")

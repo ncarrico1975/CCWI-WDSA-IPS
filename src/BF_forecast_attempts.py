@@ -7,10 +7,10 @@ import datetime
 import xgboost as xgb
 
 # df_holidays = pd.read_excel('documents/Holidays.xlsx',parse_dates=True)    #Importa medições caudal entrada
-df_holidays = pd.read_csv('documents/Holidays.txt',parse_dates=True)    #Importa medições caudal entrada
-# holidays = np.genfromtxt('documents/Holidays.txt', )
+df_holidays = pd.read_csv('../documents/Holidays.txt',parse_dates=True)    #Importa medições caudal entrada
+#holidays = np.genfromtxt('../documents/Holidays.txt', )
 
-df_inflow = pd.read_excel('documents/InflowData_1.xlsx')    #Importa medições caudal entrada
+df_inflow = pd.read_excel('../documents/InflowData_1.xlsx')    #Importa medições caudal entrada
 
 transf_dict_inflow = {
     "Date-time CET-CEST (DD/MM/YYYY HH:mm)": "datetime",
@@ -32,7 +32,7 @@ df_inflow.set_index('datetime', inplace = True) #passa timestamps a index
 
 
 
-df_weather = pd.read_excel('documents/WeatherData_1.xlsx')  #importa medições meteorológicas
+df_weather = pd.read_excel('../documents/WeatherData_1.xlsx')  #importa medições meteorológicas
 
 transf_dict_weather = {
     "Date-time CET-CEST (DD/MM/YYYY HH:mm)": "datetime",
