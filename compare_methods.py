@@ -7,6 +7,7 @@ import datetime
 from methods.naive import naive
 from methods.xgboost import xgboost_naive
 from methods.svr import svr
+from methods.quevedo import quevedo
 from methods.metrics import BattleMetrics_per_dma
 from sklearn.metrics import mean_squared_error
 
@@ -170,9 +171,10 @@ def lstm(df_train = None, window = WINDOW, n_days_test = 7):
 
 
 df_holidays = pd.read_csv('documents/Holidays.txt',parse_dates=True)    #import holidays
-df_inflow = pd.read_csv('treated_series/inflow_completed_in_R.csv')
-# df_inflow = pd.read_excel('documents/InflowData_1.xlsx')    #import inflow data
-df_weather = pd.read_excel('documents/WeatherData_1.xlsx')  #import weather data
+# df_inflow = pd.read_excel('documents/InflowData_1.xlsx')    #import original inflow data
+df_inflow = pd.read_csv('treated_series/inflow_completed_in_R.csv')     #import reconstructed inflow data
+df_weather = pd.read_excel('documents/WeatherData_1.xlsx')  #import original weather data
+# df_weather = pd.read_csv('treated_series/weather_completed_in_R.csv')  #import reconstructed weather data
 
 transf_dict_inflow = {
     "Date-time CET-CEST (DD/MM/YYYY HH:mm)": "datetime",
@@ -214,26 +216,27 @@ n_days_test    = 7            # lenght of our test data (counting from the next 
 
 # comment out the models you don't want to run
 forecasting_methods = [
-                    # 'naive_avg',
-                    # 'naive_median',
-                    # 'naive_ewma',
-                    # 'xgboost_naive',
-                    # 'lstm',
+                    'naive_avg',
+                    'naive_median',
+                    'naive_ewma',
+                    'xgboost_naive',
+                    'lstm',
                     'svr',
+                    'quevedo',
                     ]
 
 # comment out the variables dmas you don't want to run
 forecasting_dmas = [
                     'dma_A',
                     'dma_B',
-                    # 'dma_C',
-                    # 'dma_D',
-                    # 'dma_E',
-                    # 'dma_F',
-                    # 'dma_G',
-                    # 'dma_H',
-                    # 'dma_I',
-                    # 'dma_J'
+                    'dma_C',
+                    'dma_D',
+                    'dma_E',
+                    'dma_F',
+                    'dma_G',
+                    'dma_H',
+                    'dma_I',
+                    'dma_J'
                     ]
 
 
@@ -283,22 +286,27 @@ if 'naive_median' in forecasting_methods: df_forecasts_naive_median = pd.DataFra
 if 'naive_ewma' in forecasting_methods: df_forecasts_naive_ewma = pd.DataFrame(index = range_to_forecast, columns = forecasting_dmas)
 if 'xgboost_naive' in forecasting_methods: df_forecasts_xgboost_naive = pd.DataFrame(index = range_to_forecast, columns = forecasting_dmas)
 if 'svr' in forecasting_methods: df_forecasts_svr = pd.DataFrame(index = range_to_forecast, columns = forecasting_dmas)
+if 'quevedo' in forecasting_methods: df_forecasts_quevedo = pd.DataFrame(index = range_to_forecast, columns = forecasting_dmas)
 
 #Empty df's to receive error metric results
+global_rmse = pd.DataFrame(index=forecasting_methods,columns=forecasting_dmas)
 if 'lstm' in forecasting_methods: lstm_rmse = pd.DataFrame(columns=forecasting_dmas)
 if 'naive_avg' in forecasting_methods: naive_avg_rmse = pd.DataFrame(index = range_to_forecast, columns = forecasting_dmas)
 if 'naive_median' in forecasting_methods: naive_median_rmse = pd.DataFrame(index = range_to_forecast, columns = forecasting_dmas)
 if 'naive_ewma' in forecasting_methods: naive_ewma_rmse = pd.DataFrame(index = range_to_forecast, columns = forecasting_dmas)
 if 'xgboost_naive' in forecasting_methods: xgboost_naive_rmse = pd.DataFrame(index = range_to_forecast, columns = forecasting_dmas)
 if 'svr' in forecasting_methods: svr_rmse = pd.DataFrame(index = range_to_forecast, columns = forecasting_dmas)
+if 'quevedo' in forecasting_methods: quevedo_rmse = pd.DataFrame(index = range_to_forecast, columns = forecasting_dmas)
 
 #Empty df's to receive battle metric results
+global_battle_metrics = pd.DataFrame(index=forecasting_methods,columns=np.append(forecasting_dmas,'sum'))
 if 'lstm' in forecasting_methods: lstm_battle_metrics= pd.DataFrame(columns=forecasting_dmas)
 if 'naive_avg' in forecasting_methods: naive_avg_battle_metrics = pd.DataFrame(index = range_to_forecast, columns = forecasting_dmas)
 if 'naive_median' in forecasting_methods: naive_median_battle_metrics = pd.DataFrame(index = range_to_forecast, columns = forecasting_dmas)
 if 'naive_ewma' in forecasting_methods: naive_ewma_battle_metrics = pd.DataFrame(index = range_to_forecast, columns = forecasting_dmas)
 if 'xgboost_naive' in forecasting_methods: xgboost_naive_battle_metrics = pd.DataFrame(index = range_to_forecast, columns = forecasting_dmas)
 if 'svr' in forecasting_methods: svr_battle_metrics = pd.DataFrame(index = range_to_forecast, columns = forecasting_dmas)
+if 'quevedo' in forecasting_methods: quevedo_battle_metrics = pd.DataFrame(index = range_to_forecast, columns = forecasting_dmas)
 
 
 
@@ -312,21 +320,25 @@ true_df = df_inflow.loc[(df_inflow.index >= last_day_train+pd.Timedelta(days = 1
 expected_weather_df = df_weather.loc[(df_weather.index >= last_day_train+pd.Timedelta(days = 1)) &
                                   (df_weather.index<=last_day_train+pd.Timedelta(days = n_days_test+1))]
 
-
+#Main loop
 for dma in forecasting_dmas:    # for each dma
 
     if 'lstm' in forecasting_methods:
          #y_pred will be an array storing the forecast obtained from LSTM
-         y_pred = lstm(df_train = history_inflow_df.loc[:,[dma]], window=WINDOW, n_days_test=n_days_test)
+         y_pred = lstm(df_train = history_inflow_df.loc[:,[dma]], 
+                       window=WINDOW, 
+                       n_days_test=n_days_test)
+         
          x = true_df.index # it will store the indices of the range to forecast
          df_forecasts_lstm.loc[x,dma] = y_pred[:,0]
          y_true =true_df.loc[x,dma].values # true values of the range to forecast
          
          lstm_rmse.loc[0,dma] = mean_squared_error(y_true, y_pred,squared=False)
-
+         global_rmse.loc['lstm',dma] = lstm_rmse.loc[0,dma]
          if n_days_test == 7: #because only in this case it makes sense to compute battle's metrics
              lstm_battle_metrics.loc[0,dma]= BattleMetrics_per_dma(y_pred, y_true)
-             
+             global_battle_metrics.loc['lstm',dma] = lstm_battle_metrics.loc[0,dma]
+     
     if 'naive_avg' in forecasting_methods:
         y_pred = naive(df_train=history_inflow_df.loc[:,[dma]],
                        test_length=24*n_days_test,
@@ -338,9 +350,11 @@ for dma in forecasting_dmas:    # for each dma
         y_true =true_df.loc[x,dma].values # true values of the range to forecast
 
         naive_avg_rmse.loc[0,dma] = mean_squared_error(y_true, y_pred,squared=False)
-  
+        global_rmse.loc['naive_avg',dma] = naive_avg_rmse.loc[0,dma]
+
         if n_days_test == 7: #because only in this case it makes sense to compute battle's metrics
             naive_avg_battle_metrics.loc[0,dma]= BattleMetrics_per_dma(y_pred, y_true)
+            global_battle_metrics.loc['naive_avg',dma] = naive_avg_battle_metrics.loc[0,dma]
 
     if 'naive_median' in forecasting_methods:
         y_pred = naive(df_train=history_inflow_df.loc[:,[dma]],
@@ -353,9 +367,11 @@ for dma in forecasting_dmas:    # for each dma
         y_true =true_df.loc[x,dma].values # true values of the range to forecast
 
         naive_median_rmse.loc[0,dma] = mean_squared_error(y_true, y_pred,squared=False)
-  
+        global_rmse.loc['naive_median',dma] = naive_median_rmse.loc[0,dma]
+
         if n_days_test == 7: #because only in this case it makes sense to compute battle's metrics
             naive_median_battle_metrics.loc[0,dma]= BattleMetrics_per_dma(y_pred, y_true)
+            global_battle_metrics.loc['naive_median',dma] = naive_median_battle_metrics.loc[0,dma]
 
     if 'naive_ewma' in forecasting_methods:
         y_pred = naive(df_train=history_inflow_df.loc[:,[dma]],
@@ -368,9 +384,11 @@ for dma in forecasting_dmas:    # for each dma
         y_true =true_df.loc[x,dma].values # true values of the range to forecast
 
         naive_ewma_rmse.loc[0,dma] = mean_squared_error(y_true, y_pred,squared=False)
-  
+        global_rmse.loc['naive_ewma',dma] = naive_ewma_rmse.loc[0,dma]
+
         if n_days_test == 7: #because only in this case it makes sense to compute battle's metrics
             naive_ewma_battle_metrics.loc[0,dma]= BattleMetrics_per_dma(y_pred, y_true)
+            global_battle_metrics.loc['naive_ewma',dma] = naive_ewma_battle_metrics.loc[0,dma]
 
     if 'xgboost_naive' in forecasting_methods:
         y_pred = xgboost_naive(history_inflow_df=history_inflow_df.loc[:,[dma]], 
@@ -384,9 +402,11 @@ for dma in forecasting_dmas:    # for each dma
         y_true =true_df.loc[x,dma].values # true values of the range to forecast
 
         xgboost_naive_rmse.loc[0,dma] = mean_squared_error(y_true, y_pred,squared=False)
-  
+        global_rmse.loc['xgboost_naive',dma] = xgboost_naive_rmse.loc[0,dma]
+
         if n_days_test == 7: #because only in this case it makes sense to compute battle's metrics
             xgboost_naive_battle_metrics.loc[0,dma]= BattleMetrics_per_dma(y_pred, y_true)
+            global_battle_metrics.loc['xgboost_naive',dma] = xgboost_naive_battle_metrics.loc[0,dma]
 
     if 'svr' in forecasting_methods:
         y_pred = svr(history_inflow_df=history_inflow_df.loc[:,[dma]], 
@@ -399,11 +419,28 @@ for dma in forecasting_dmas:    # for each dma
         y_true =true_df.loc[x,dma].values # true values of the range to forecast
 
         svr_rmse.loc[0,dma] = mean_squared_error(y_true, y_pred,squared=False)
-  
+        global_rmse.loc['svr',dma] = svr_rmse.loc[0,dma]
+
         if n_days_test == 7: #because only in this case it makes sense to compute battle's metrics
             svr_battle_metrics.loc[0,dma]= BattleMetrics_per_dma(y_pred, y_true)
+            global_battle_metrics.loc['svr',dma] = svr_battle_metrics.loc[0,dma]
 
+    if 'quevedo' in forecasting_methods:
+        y_pred = quevedo(history_inflow_df=history_inflow_df.loc[:,[dma]], 
+                     test_length=24*n_days_test,
+                     df_holidays = df_holidays,
+                     pattern_type='day_by_day')   # day_by_day or weekday_vs_weekend
+        
+        x = true_df.index # it will store the indices of the range to forecast
+        df_forecasts_quevedo.loc[x,dma] = y_pred
+        y_true =true_df.loc[x,dma].values # true values of the range to forecast
 
+        quevedo_rmse.loc[0,dma] = mean_squared_error(y_true, y_pred,squared=False)
+        global_rmse.loc['quevedo',dma] = svr_rmse.loc[0,dma]
+
+        if n_days_test == 7: #because only in this case it makes sense to compute battle's metrics
+            quevedo_battle_metrics.loc[0,dma]= BattleMetrics_per_dma(y_pred, y_true)
+            global_battle_metrics.loc['quevedo',dma] = quevedo_battle_metrics.loc[0,dma]
 
 # Create a list to store traces
 traces = []
@@ -442,11 +479,17 @@ if 'svr' in forecasting_methods:
         trace = go.Scatter(x=df_forecasts_svr.index, y=df_forecasts_svr[dma], mode='markers', name=f'SVR - {dma}', line=dict(color=dict_colors[dma], width=1.5, dash='solid'))
         traces.append(trace) 
 
+if 'quevedo' in forecasting_methods:
+    for dma in df_forecasts_quevedo.columns:    #forecasts_xgboost_naive
+        trace = go.Scatter(x=df_forecasts_quevedo.index, y=df_forecasts_quevedo[dma], mode='markers', name=f'Quevedo - {dma}', line=dict(color=dict_colors[dma], width=1.5, dash='solid'))
+        traces.append(trace) 
+
+
 fig = go.Figure(data=traces)
 
 fig.show()
 
-#
+#Print errors for each model
 if 'lstm' in forecasting_methods:
     print('RMSE for the LSTM model (for all selected DMAs) \n\n',lstm_rmse)
     print('\n\n')
@@ -488,3 +531,19 @@ if 'svr' in forecasting_methods:
     if n_days_test==7:
         print('Battle metrics for the SVR model (for all selected DMAs)\n\n', svr_battle_metrics)
         print('Overall battle metrics = ', svr_battle_metrics.sum(axis =1).loc[0])
+
+if 'quevedo' in forecasting_methods:
+    print('RMSE for the Quevedo model (for all selected DMAs) \n\n',quevedo_rmse)
+    print('\n\n')
+    if n_days_test==7:
+        print('Battle metrics for the Quevedo model (for all selected DMAs)\n\n', quevedo_battle_metrics)
+        print('Overall battle metrics = ', quevedo_battle_metrics.sum(axis =1).loc[0])
+
+
+
+#Print global errors
+print('Global RMSE: \n\n',global_rmse)
+print('\n\n')
+if n_days_test==7:
+    global_battle_metrics['sum'] = global_battle_metrics.sum(axis=1).values
+    print('Global BattleMetrics \n\n',global_battle_metrics)

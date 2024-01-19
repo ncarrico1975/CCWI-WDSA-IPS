@@ -2,6 +2,10 @@ import pandas as pd
 import numpy as np
 import datetime
 from sklearn import svm
+import warnings
+
+# Filter out the specific warning
+warnings.filterwarnings("ignore", category=UserWarning, module="sklearn.base")
 
 
 
@@ -9,9 +13,10 @@ from sklearn import svm
 #### SVR1
 def svr(history_inflow_df=None, test_length=24*7, df_holidays=None,D=5):
 
-    holiday = df_holidays
+    holiday = df_holidays.copy()
     holiday.columns = ['date']
 
+    history_inflow_df = history_inflow_df.copy()
     history_inflow_df['date'] = history_inflow_df.index
     history_inflow_df.columns = ['flow','date']
 
